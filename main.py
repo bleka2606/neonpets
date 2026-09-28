@@ -36,20 +36,24 @@ class PetGame:
         self.paused = False
         self.ui_elements = {}
         self.species_data = {
-            "Neon Rabbit": (0.001, 0.003, "#ff007f", "Вухань: П'є часто.",
-                            "Bunny: Thirsty one.",
-                            ["(\\_/)\n( •_•)\n/ >💧", "(\\_/)\n( o.o)\n/ >💧"]),
-            "Cyber Shark": (0.003, 0.001, "#00ffcc", "Акула: Завжди голодна.",
-                            "Shark: Always hungry.",
-                            [" /\\ \n <* )))<\n \\/ ", " /\\ \n <* )))<\n \\/ "]),
-            "Plasma Cat": (0.0015, 0.0015, "#bc13fe", "Кіт: Збалансований.",
-                           "Cat: Balanced.",
-                           [" /\\_/\\\n( o.o )\n > ^ < ", " /\\_/\\\n( -.- )\n > ^ < "])
+            "Neon Rabbit": (0.001, 0.003, "#ff007f", "Вухань: П'є часто.", "Bunny: Thirsty one.",
+                            [r" (\\___/)" + "\n" + r" (=' .'=)" + "\n" + r"c(”)(”)…",
+                             r" (\\___/)" + "\n" + r" (> ' <)" + "\n" + r"c(”)(”)…"]),
+
+            "Cyber Shark": (0.003, 0.001, "#00ffcc", "Акула: Завжди голодна.", "Shark: Always hungry.",
+                            [r"     |\\" + "\n" + r"_///_■-■>" + "\n" + r"( ._ . )>",
+                             r"     |\\" + "\n" + r"_///_0_0>" + "\n" + r"(  ▼  )>"]),
+
+            "Plasma Cat": (0.0015, 0.0015, "#bc13fe", "Кіт: Збалансований.", "Cat: Balanced.",
+                           [r" /\\_/\\ " + "\n" + r"( ■_■ )" + "\n" + r"==~_~==" + "\n" + r" /   \\",
+                            r" /\\_/\\ " + "\n" + r"( ^_^ )" + "\n" + r"==~_~==" + "\n" + r" /   \\"])
         }
+
+
         self.text = {
             "UA": {
                 "login": "🔑 ВХІД", "reg": "📝 РЕЄСТРАЦІЯ", "set": "⚙️", "rules": "📜 ПРАВИЛА",
-                "back": "↩ НАЗАД", "eat": "🍖 ГОДУВАТИ", "drink": "💧 НАПОЇТИ",
+                "back": "↩ НАЗАД", "eat": "🍖 ГОДУВАТИ", "drink": "💧 НАПОЇТИ", "play": "🎮 ГРАТИ",
                 "health": "❤️ ЖИТТЯ", "food": "🍖 СИТНІСТЬ", "water": "💧 СПРАГА", "age": "ВІК",
                 "mail_h": "Приклад: user@mail.com", "pass_h": "8+ симв, A-Z, 0-9, !", "conf": "ПОВТОР ПАРОЛЯ",
                 "rule_txt": "📜 ПРАВИЛА ГРИ:\n1. 1 рік = 1 день реального часу.\n2. Вихованець хоче їсти навіть коли додаток вимкнено.\n3. Слідкуйте за шкалами, щоб вихованець не загинув.",
@@ -58,7 +62,7 @@ class PetGame:
             },
             "EN": {
                 "login": "🔑 LOGIN", "reg": "📝 REGISTER", "set": "⚙️", "rules": "📜 RULES",
-                "back": "↩ BACK", "eat": "🍖 FEED", "drink": "💧 DRINK",
+                "back": "↩ BACK", "eat": "🍖 FEED", "drink": "💧 DRINK", "play": "🎮 PLAY",
                 "health": "❤️ HEALTH", "food": "🍖 FOOD", "water": "💧 THIRST", "age": "AGE",
                 "mail_h": "Ex: user@mail.com", "pass_h": "8+ chars, A-Z, 0-9, !", "conf": "CONFIRM PASS",
                 "rule_txt": "📜 GAME RULES:\n1. 1 pet year = 1 real day.\n2. Stats drop offline.\n3. Keep bars full or the pet will die.",
@@ -66,6 +70,7 @@ class PetGame:
                 "admin_title": "ADMIN PANEL (Email | Pass | Pet)", "y": "year", "m": "mon."
             }
         }
+
         self.root.geometry("500x850")
         self.root.configure(bg=self.bg_color)
         self.root.bind("<Control-Shift-KeyPress-A>", lambda e: self.show_admin_panel())
@@ -170,6 +175,35 @@ class PetGame:
         e_p = self.create_input(f, "PASSWORD", t["pass_h"], True)
         e_c = self.create_input(f, t["conf"], "", True)
 
+        def play_with_pet(self):
+            if not self.current_user or "pet" not in self.current_user:
+                return
+
+            import random
+            games_ua = [
+                "Ви пограли у віртуальну квачу. Вихованець щасливий!",
+                "Ви запустили лазерну указку. Малюк бігає за променем!",
+                "Ви підключили вихованця до VR-ігри. Йому сподобалося!"
+            ]
+            games_en = [
+                "You played virtual tag. The pet is happy!",
+                "You turned on a laser pointer. It's chasing the beam!",
+                "You connected the pet to a VR game. It loved it!"
+            ]
+
+            # Додаємо 10% до здоров'я/щастя вихованця
+            self.current_user["pet"]["health"] = min(1.0, self.current_user["pet"]["health"] + 0.1)
+
+            # Вибираємо випадкове повідомлення
+            msg = random.choice(games_ua if self.lang == "UA" else games_en)
+
+            # Показуємо повідомлення гравцю (через стандартне вікно повідомлень Tkinter)
+            from tkinter import messagebox
+            messagebox.showinfo("🎮 Play", msg)
+
+            # Перезапускаємо екран гри, щоб оновити смужки життів
+            self.show_game()
+
         def save():
             if e_p.get() != e_c.get():
                 messagebox.showerror("!", "Mismatch!")
@@ -260,14 +294,28 @@ class PetGame:
         self.age_lbl = tk.Label(self.root, text="", font=("Arial", 12, "bold"), bg=self.bg_color, fg="white")
         self.age_lbl.pack(pady=20)
         self.ui_elements["age_lbl"] = self.age_lbl
-        for k in ["eat", "drink", "back"]:
-            b = tk.Button(self.root, text=t[k], bg="#4CAF50" if k == "eat" else "#2196F3" if k == "drink" else "#333",
-                          fg="white", width=25, height=2,
-                          command=lambda x=k: self.refill("food") if x == "eat" else self.refill(
-                              "water") if x == "drink" else self.show_selection())
-            b.pack(pady=5)
+        for k in ["eat", "drink", "play", "back"]:
+            if k == "eat":
+                btn_bg = "#4CAF50"
+            elif k == "drink":
+                btn_bg = "#2196F3"
+            elif k == "play":
+                btn_bg = "#9B51E0"  # Кіберпанк фіолетовий
+            else:
+                btn_bg = "#333"
+
+            if k == "eat":
+                btn_cmd = lambda: self.refill("food")
+            elif k == "drink":
+                btn_cmd = lambda: self.refill("water")
+            elif k == "play":
+                btn_cmd = self.play_with_pet
+            else:
+                btn_cmd = self.show_selection
+
+            b = tk.Button(self.root, text=t[k], bg=btn_bg, fg="white", width=25, height=2, command=btn_cmd)
+            b.pack(pady=2)  # <-- ТУТ ЗМЕНШУЄМО З 5 НА 2
             self.ui_elements[k] = b
-        self.update_loop()
 
     def update_loop(self):
         if self.paused or self.stats["health"] <= 0: return
@@ -276,7 +324,15 @@ class PetGame:
         self.stats["water"] = max(0, self.stats["water"] - d[1] * 5.5)
         if self.stats["food"] <= 0 or self.stats["water"] <= 0:
             self.stats["health"] -= 0.15
-        self.pet_lbl.config(text=d[5][int(time.time()) % 2])
+            # Безпечне та стабільне відображення анімації тваринки
+            try:
+                if hasattr(self, 'pet_lbl') and self.pet_lbl:
+                    frames = d[5] if len(d) > 5 else d[4]
+                    current_frame = frames[int(time.time()) % len(frames)]
+                    self.pet_lbl.config(text=current_frame)
+
+            except Exception as anim_err:
+                print(f"Помилка відображення тваринки: {anim_err}")
         self.update_age_text()
         for s in ["health", "food", "water"]:
             val = int(round(self.stats[s]))
@@ -336,6 +392,8 @@ class PetGame:
             tk.Button(s, text=r, command=lambda x=r: self.root.geometry(x)).pack(pady=2)
         tk.Button(s, text="OK", bg="#4CAF50", fg="white", width=15,
                   command=lambda: [setattr(self, 'paused', old_p), s.destroy()]).pack(pady=30)
+
+
 
     def create_input(self, parent, label, hint="", is_pass=False):
         tk.Label(parent, text=label, bg=self.bg_color, fg=self.accent_color, font=("Arial", 8, "bold")).pack(anchor="w")
